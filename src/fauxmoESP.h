@@ -62,8 +62,6 @@ THE SOFTWARE.
 #elif defined(ESP32)
     #include <WiFi.h>
     #include <AsyncTCP.h>
-#elif defined(ARDUINO_RASPBERRY_PI_PICO_W)
-    #include <AsyncTCP_RP2040W.h>
 #else
 	#error Platform not supported
 #endif
@@ -87,6 +85,7 @@ class fauxmoESP {
 
     public:
 
+        fauxmoESP();
         ~fauxmoESP();
 
         unsigned char addDevice(const char * device_name);
@@ -103,7 +102,7 @@ class fauxmoESP {
         bool process(AsyncClient *client, bool isGet, String url, String body);
         void enable(bool enable);
         void createServer(bool internal) { _internal = internal; }
-        void setPort(unsigned long tcp_port) { _tcp_port = tcp_port; }
+        void setPort(uint16_t tcp_port) { _tcp_port = tcp_port; }
         void handle();
 
     private:
@@ -111,7 +110,7 @@ class fauxmoESP {
         AsyncServer * _server;
         bool _enabled = false;
         bool _internal = true;
-        unsigned int _tcp_port = FAUXMO_TCP_PORT;
+        uint16_t _tcp_port = FAUXMO_TCP_PORT;
         std::vector<fauxmoesp_device_t> _devices;
 		#ifdef ESP8266
         WiFiEventHandler _handler;
@@ -121,6 +120,7 @@ class fauxmoESP {
         TSetStateCallback _setCallback = NULL;
 
         String _deviceJson(unsigned char id, bool all); 	// all = true means we are listing all devices so use full description template
+        char _shortmac[13];
 
         void _handleUDP();
         void _onUDPData(const IPAddress remoteIP, unsigned int remotePort, void *data, size_t len);
@@ -129,11 +129,11 @@ class fauxmoESP {
         void _onTCPClient(AsyncClient *client);
         bool _onTCPData(AsyncClient *client, void *data, size_t len);
         bool _onTCPRequest(AsyncClient *client, bool isGet, String url, String body);
-        bool _onTCPDescription(AsyncClient *client, String url, String body);
-        bool _onTCPList(AsyncClient *client, String url, String body);
+        bool _onTCPDescription(AsyncClient *client);
+        bool _onTCPList(AsyncClient *client, String url);
         bool _onTCPControl(AsyncClient *client, String url, String body);
-        void _sendTCPResponse(AsyncClient *client, const char * code, char * body, const char * mime);
+        void _sendTCPResponse(AsyncClient *client, char * body, const char * mime);
 
-        String _byte2hex(uint8_t zahl);
-        String _makeMD5(String text);
+        //String _byte2hex(uint8_t zahl);
+        //String _makeMD5(String text);
 };
